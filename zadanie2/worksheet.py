@@ -9,6 +9,7 @@ import numpy as np
 #%% Load data
 X_train, Y_train = loadlocal_mnist('data/train-images.idx3-ubyte', 'data/train-labels.idx1-ubyte')
 X_test, Y_test = loadlocal_mnist('data/t10k-images.idx3-ubyte', 'data/t10k-labels.idx1-ubyte')
+# X_train = X_train / 256
 
 #%% Show data
 print('Train data shape:', X_train.shape)
@@ -24,9 +25,9 @@ X = X_train[:1000]
 Y = Y_train[:1000]
 Y = np.reshape(Y, newshape=(-1, 1))
 
-n = NeuralNetwork.create_random([28*28, 256, 128, 10], ['relu', 'relu', 'sigmoid'])
-n.train(trainData=(X.T, Y.T), epochs=10, gradReps=1, rate=0.01, miniBatch=64, valData=(x_val.T, y_val.T))
-print(n.predict(X_train.T / 256), Y_train)
+n = NeuralNetwork.create_random([28*28, 256, 128, 10], [ActivationFunction.Relu, ActivationFunction.Relu, ActivationFunction.Sigmoid])
+n.train(trainData=(X.T, Y.T), epochs=100, gradReps=1, rate=0.01, miniBatch=64, valData=(x_val.T, y_val.T))
+print(n.predict(X_train.T), Y_train)
 # for i in range(10):
     # n.gradient_descent(X_train.T, Y_train.T, 1)
 # print(np.bincount(n.predict(X_train.T / 256).T[0]), Y_train)
