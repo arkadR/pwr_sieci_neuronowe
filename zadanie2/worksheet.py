@@ -18,9 +18,11 @@ plt.imshow(np.reshape(X_train[20], (28, 28)))
 plt.show()
 
 #%% Feed forward
-n = NeuralNetwork.create_random([784, 5, 10], [ActivationFunction.Sigmoid, ActivationFunction.SoftMax])
-n.predict(X_train.T / 256), Y_train
-
+n = NeuralNetwork.create_random([784, 9, 10], [ActivationFunction.Sigmoid, ActivationFunction.SoftMax])
+print(n.predict(X_train.T / 256), Y_train)
+for i in range(10):
+    n.gradient_descent(X_train.T, Y_train.T, 1)
+print(np.bincount(n.predict(X_train.T / 256).T[0]), Y_train)
 
 
 #%% Saving and reading from file
@@ -44,3 +46,10 @@ def plot_network(n):
 
 n = NeuralNetwork.create_random([10, 5, 7], [ActivationFunction.Sigmoid, ActivationFunction.SoftMax])
 plot_network(n)
+
+
+# %%
+funs = [ActivationFunction.Sigmoid, ActivationFunction.SoftMax, ActivationFunction.SoftMax]
+c, v = zip(*[ActivationFunction.get(f) for f in funs])
+print(c)
+print(v)
