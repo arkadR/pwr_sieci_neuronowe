@@ -18,11 +18,18 @@ plt.imshow(np.reshape(X_train[20], (28, 28)))
 plt.show()
 
 #%% Feed forward
-n = NeuralNetwork.create_random([784, 9, 10], [ActivationFunction.Sigmoid, ActivationFunction.SoftMax])
+x_val = X_train[-200:]
+y_val = np.reshape(Y_train[-200:], newshape=(-1, 1))
+X = X_train[:1000]
+Y = Y_train[:1000]
+Y = np.reshape(Y, newshape=(-1, 1))
+
+n = NeuralNetwork.create_random([28*28, 256, 128, 10], ['relu', 'relu', 'sigmoid'])
+n.train(trainData=(X.T, Y.T), epochs=10, gradReps=1, rate=0.01, miniBatch=64, valData=(x_val.T, y_val.T))
 print(n.predict(X_train.T / 256), Y_train)
-for i in range(10):
-    n.gradient_descent(X_train.T, Y_train.T, 1)
-print(np.bincount(n.predict(X_train.T / 256).T[0]), Y_train)
+# for i in range(10):
+    # n.gradient_descent(X_train.T, Y_train.T, 1)
+# print(np.bincount(n.predict(X_train.T / 256).T[0]), Y_train)
 
 
 #%% Saving and reading from file
