@@ -7,31 +7,31 @@ import numpy as np
 
 
 #%% Load data
-X_train, Y_train = loadlocal_mnist('data/train-images.idx3-ubyte', 'data/train-labels.idx1-ubyte')
+X, Y = loadlocal_mnist('data/train-images.idx3-ubyte', 'data/train-labels.idx1-ubyte')
 X_test, Y_test = loadlocal_mnist('data/t10k-images.idx3-ubyte', 'data/t10k-labels.idx1-ubyte')
-# X_train = X_train / 256
-
-#%% Show data
-print('Train data shape:', X_train.shape)
-print('Test data shape:', X_test.shape)
-
-plt.imshow(np.reshape(X_train[20], (28, 28)))
-plt.show()
-
-#%% Feed forward
-x_val = X_train[-200:]
-y_val = np.reshape(Y_train[-200:], newshape=(-1, 1))
-X = X_train[:1000]
-Y = Y_train[:1000]
 Y = np.reshape(Y, newshape=(-1, 1))
 
-n = NeuralNetwork.create_random([28*28, 256, 128, 10], [ActivationFunction.Relu, ActivationFunction.Relu, ActivationFunction.Sigmoid])
-n.train(trainData=(X.T, Y.T), epochs=100, gradReps=1, rate=0.01, miniBatch=64, valData=(x_val.T, y_val.T))
-print(n.predict(X_train.T), Y_train)
-# for i in range(10):
-    # n.gradient_descent(X_train.T, Y_train.T, 1)
-# print(np.bincount(n.predict(X_train.T / 256).T[0]), Y_train)
+#%% Training
+X_train = X[:10000]
+Y_train = Y[:10000]
+X_val = X[10000:12000]
+Y_val = Y[10000:12000]
 
+n = NeuralNetwork.create_random([28*28, 20, 10], [ActivationFunction.Relu, ActivationFunction.Relu, ActivationFunction.Sigmoid])
+n.train(X_train.T, Y_train.T, X_val.T, Y_val.T, epochs=10, rate=0.01, batch=64)
+
+#%% Results
+Z = n.predict(X_test.T).T[0]
+print (Z, Y_test)
+
+
+
+#%% Show data
+print('Train data shape:', X.shape)
+print('Test data shape:', X_test.shape)
+
+plt.imshow(np.reshape(X[20], (28, 28)))
+plt.show()
 
 #%% Saving and reading from file
 n = NeuralNetwork.create_random([3, 3, 3], [ActivationFunction.Sigmoid, ActivationFunction.SoftMax])
