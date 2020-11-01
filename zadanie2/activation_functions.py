@@ -103,7 +103,6 @@ class ActivationFunction:
     @staticmethod
     def __softplus(x):
         return np.log(1+np.exp(x))
-
     @staticmethod
     def __softplus_prime(x):
         return 1./(1.+np.exp(-x))
@@ -111,7 +110,6 @@ class ActivationFunction:
     @staticmethod
     def __linear(x):
         return x
-    
     @staticmethod
     def __linear_prime(x):
         return 1

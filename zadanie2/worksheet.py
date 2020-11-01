@@ -14,25 +14,6 @@ X_train = X[:-5000]
 Y_train = Y[:-5000]
 X_val = X[-5000:]
 Y_val = Y[-5000:]
-# X_train = X[:1000]
-# Y_train = Y[:1000]
-# X_val = X[1000:1500]
-# Y_val = Y[1000:1500]
-
-
-#%% Training
-# n = NeuralNetwork.create_random([28*28, 80, 10], [ActivationFunction.Relu, ActivationFunction.SoftMax])
-# n.train(X_train.T, Y_train.T, X_val.T, Y_val.T, timecap=100, rate=0.005, batch=32)
-
-#%%
-# n.evaluate(X_test.T, Y_test)
-
-#%% Results
-# a = [(s.time, s.train_acc, s.val_acc) for s in n.snapshots]
-# Time, T, V = zip(*a)
-# plt.plot(Time, T)
-# plt.plot(Time, V)
-# plt.ylim(bottom=0, top=1)
 
 #%% Bulk evaluate
 def evaluate(
@@ -165,7 +146,6 @@ for act in test_values:
     std.append(np.std(acc))
     nets.append(net)
 
-#%%
 test_values = [0, 1, 2, 3, 4]
 plt.errorbar(test_values, max_a, linestyle='None', marker='o')
 plt.xlabel('Funkcja aktywacji')
@@ -215,39 +195,3 @@ draw_network_progress(nets, test_values, 'train_data', 'Przebieg uczenia najleps
 
 X_train = X[:-10000]
 Y_train = Y[:-10000]
-#%% Show data
-print('Train data shape:', X.shape)
-print('Test data shape:', X_test.shape)
-
-plt.imshow(np.reshape(X[20], (28, 28)))
-plt.show()
-
-#%% Saving and reading from file
-n = NeuralNetwork.create_random([3, 3, 3], [ActivationFunction.Sigmoid, ActivationFunction.SoftMax])
-n.save_to_file('networks/network1.npz')
-n2 = NeuralNetwork.from_file('networks/network1.npz')
-print('Original: ', np.asarray(n.W))
-print('\nFrom file:', n2.W)
-
-#%% Plot network
-def plot_network(n):
-    for layer in range(len(n.W)):
-        for right_neuron_index in range(len(n.W[layer])):
-            for left_neuron_index in range(len(n.W[layer][right_neuron_index])):
-                # print(left_neuron_index, right_neuron_index, n.W[layer][right_neuron_index][left_neuron_index])
-                plt.plot(
-                    [layer, layer+1], 
-                    [left_neuron_index, right_neuron_index], 
-                    color=str((n.W[layer][right_neuron_index][left_neuron_index] + 1) / 2)
-                )
-
-n = NeuralNetwork.create_random([10, 5, 7], [ActivationFunction.Sigmoid, ActivationFunction.SoftMax])
-plot_network(n)
-
-#%%
-n = NeuralNetwork.create_random([28*28, 80, 10], [ActivationFunction.Relu, ActivationFunction.Sigmoid], weight_range=0.001, bias_range=0.2)
-#%%
-n.train(X_train.T, Y_train.T, X_val.T, Y_val.T, timecap=300, rate=0.01, batch=256, silent=False)
-acc = n.evaluate(X_test.T, Y_test)
-
-n.save_to_file('test')
