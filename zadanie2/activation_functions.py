@@ -3,10 +3,12 @@ import numpy as np
 class ActivationFunction:
     Sigmoid = 0
     HyperbolicTangent = 1
-    Swish = 2
-    SoftMax = 3
-    Relu = 4
-    LRelu = 5
+    Relu = 2
+    LRelu = 3
+    SoftPlus = 4
+    Swish = 5
+    Linear = 6
+    SoftMax = 7
 
     @staticmethod
     def get(function):
@@ -34,6 +36,21 @@ class ActivationFunction:
             return (
                 lambda x: ActivationFunction.__lrelu(x), 
                 lambda x: ActivationFunction.__lrelu_prime(x))
+
+        elif (function == ActivationFunction.Swish):
+            return (
+                lambda x: ActivationFunction.__swish(x), 
+                lambda x: ActivationFunction.__swish_prime(x))
+
+        elif (function == ActivationFunction.SoftPlus):
+            return (
+                lambda x: ActivationFunction.__softplus(x), 
+                lambda x: ActivationFunction.__softplus_prime(x))
+
+        elif (function == ActivationFunction.Linear):
+            return (
+                lambda x: ActivationFunction.__linear(x), 
+                lambda x: ActivationFunction.__linear_prime(x))
 
         raise Exception(f"No activation function {function}")
 
@@ -75,3 +92,27 @@ class ActivationFunction:
     @staticmethod
     def __softmax_prime(x):
         return ActivationFunction.__softmax(x)*(1-ActivationFunction.__softmax(x))
+
+    @staticmethod
+    def __swish(x):
+        return x/(1+np.exp(-x))
+    @staticmethod
+    def __swish_prime(x):
+        return (np.exp(x)/(np.exp(x)+1)) * ((x + np.exp(x) + 1)/(np.exp(x) + 1))
+
+    @staticmethod
+    def __softplus(x):
+        return np.log(1+np.exp(x))
+
+    @staticmethod
+    def __softplus_prime(x):
+        return 1./(1.+np.exp(-x))
+
+    @staticmethod
+    def __linear(x):
+        return x
+    
+    @staticmethod
+    def __linear_prime(x):
+        return 1
+    

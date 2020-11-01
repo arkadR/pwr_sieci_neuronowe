@@ -1,6 +1,8 @@
 import numpy as np
 import math
 import sys
+import time
+from dataclasses import dataclass
 from activation_functions import ActivationFunction
 
 class NeuralNetwork:
@@ -12,18 +14,21 @@ class NeuralNetwork:
         self.activation_functions = [ActivationFunction.get(a)[0] for a in activations]
         self.activation_primes = [ActivationFunction.get(a)[1] for a in activations]
         self.activation_names = activations
-
+        self.snapshots = []
+        self.best_W = self.W
+        self.best_b = self.b
+        self.best_val_acc = 0
 
     @staticmethod
     def from_file(path):
         with open(path, 'rb') as file:
-            npz = np.load(file)
+            npz = np.load(file, allow_pickle=True)
             return NeuralNetwork(npz['sizes'], npz['W'], npz['b'], npz['activations'])
 
     @staticmethod
-    def create_random(sizes, activations, weight_range = 0.01):
+    def create_random(sizes, activations, weight_range = 0.01, bias_range = 0.01):
         W = [np.random.randn(sizes[i+1], sizes[i]) * weight_range for i in range(len(sizes) - 1)]
-        b = [np.zeros(shape = (sizes[i+1], 1)) for i in range(len(sizes) - 1)]
+        b = [np.random.randn(sizes[i+1], 1) * bias_range for i in range(len(sizes) - 1)]
         return NeuralNetwork(sizes, W, b, activations)
 
     def predict(self, X):
@@ -64,30 +69,43 @@ class NeuralNetwork:
         self.__update_parameters(dW, db, eta)
 
     def train(
-        self, 
-        X_train, Y_train, 
-        X_val, Y_val, 
-        epochs=10, rate=0.1, batch=100
-        ):
+            self, 
+            X_train, Y_train, 
+            X_val, Y_val, 
+            epochs=None, timecap=None, rate=0.1, batch=100, silent=True
+            ):
+        assert (epochs is not None) ^ (timecap is not None), "Provide only timecap or epochs"
         batch = min(batch, X_train.shape[1]) 
         batch_count = X_train.shape[1] // batch
-        for e in range(epochs):
-            acc = 0
+        epoch = 0
+        
+        train_acc = self.evaluate(X_train, Y_train)
+        val_acc = self.evaluate(X_val, Y_val)
+        if silent == False:
+            sys.stdout.write(f"\rEpoch: {epoch+1}, TrainAcc: {train_acc:9.3f}, ValAcc: {val_acc:9.3f}\n")
+        self.snapshots.append(Snapshot(0, train_acc, val_acc))
+        start = time.time()
+        while (epochs is not None and epoch < epochs) or (timecap is not None and time.time() - start < timecap):
+            epoch += 1
             for _ in range(batch_count):
                 # Split to batches
                 sub = np.random.randint(X_train.shape[1], size=batch)
                 X_s, Y_s = X_train[:, sub], Y_train[:, sub]
                 # Stochastic Gradient Descent
                 self.__gradient_descent(X_s, Y_s, rate)
-                # Add train results
-                (_, A) = self.__feed_forward(X_s)
-                acc += np.count_nonzero(np.argmax(A[-1], axis=0) == Y_s) / (np.shape(Y_s)[1])
-            
-            acc /= batch_count
-            sys.stdout.write(f"\rEpoch: {e+1}, TrainAcc: {acc:9.3f}     ")
-            (_, A) = self.__feed_forward(X_val)
-            acc = np.count_nonzero(np.argmax(A[-1], axis=0) == Y_val) / np.shape(Y_val)[1]
-            sys.stdout.write(f"ValAcc: {acc:9.3f}\n")
+                # Break early if time passed
+                if timecap is not None and time.time() - start > timecap:
+                    break
+                
+            train_acc = self.evaluate(X_train, Y_train)
+            val_acc = self.evaluate(X_val, Y_val)
+            if silent == False:
+                sys.stdout.write(f"\rEpoch: {epoch+1}, TrainAcc: {train_acc:9.3f}, ValAcc: {val_acc:9.3f}\n")
+            self.snapshots.append(Snapshot(time.time() - start, train_acc, val_acc))
+            if (val_acc > self.best_val_acc):
+                self.best_val_acc = val_acc
+                self.best_W, self.best_b = self.W, self.b
+        self.W, self.b = self.best_W, self.best_b
 
     def save_to_file(self, path):
         self.W = [w.astype('float16') for w in self.W]
@@ -95,3 +113,15 @@ class NeuralNetwork:
         np.savez_compressed(path, 
             sizes = self.sizes,
             W = self.W, b = self.b, activations=self.activation_names)
+
+    def evaluate(self, X, Y):
+        y = np.reshape(Y, (-1))
+        pred = np.reshape(self.predict(X), (-1))
+        return np.count_nonzero(pred == y) / len(y)
+
+
+@dataclass
+class Snapshot:
+    time: float
+    train_acc: float
+    val_acc: float
