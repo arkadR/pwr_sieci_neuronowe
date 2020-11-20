@@ -4,6 +4,7 @@ import sys
 import time
 from dataclasses import dataclass
 from activation_functions import ActivationFunction
+from weight_initialization import WeightInitialization
 
 class NeuralNetwork:
 
@@ -26,8 +27,9 @@ class NeuralNetwork:
             return NeuralNetwork(npz['sizes'], npz['W'], npz['b'], npz['activations'])
 
     @staticmethod
-    def create_random(sizes, activations, weight_range = 0.01, bias_range = 0.01):
-        W = [np.random.randn(sizes[i+1], sizes[i]) * weight_range for i in range(len(sizes) - 1)]
+    def create_random(sizes, activations, weight_range = 0.01, bias_range = 0.01, 
+                    weight_init=WeightInitialization.Random):
+        W = weight_init(sizes, weight_range)
         b = [np.random.randn(sizes[i+1], 1) * bias_range for i in range(len(sizes) - 1)]
         return NeuralNetwork(sizes, W, b, activations)
 
@@ -52,6 +54,9 @@ class NeuralNetwork:
             dA[i] = self.W[i+1].T.dot(dA[i+1])*act(Z[i])
         return dA
 
+    def __loss(self, Y, Y_exp):
+        return np.square(Y-Y_exp)/len(Y)
+
     def __backpropagation(self, y, Z, A):
         dA = self.__activation_error(y, Z, A)
         count = y.shape[1]
@@ -60,8 +65,9 @@ class NeuralNetwork:
         return (dW, db)
 
     def __update_parameters(self, dW, db, eta):
-        self.W -= eta*np.array(dW)
-        self.b -= eta*np.array(db)
+        for i, _ in enumerate(dW):
+            self.W[i] -= eta*np.array(dW[i])
+            self.b[i] -= eta*np.array(db[i])
 
     def __gradient_descent(self, X, Y, eta):
         (Z, A) = self.__feed_forward(X)
@@ -125,3 +131,4 @@ class Snapshot:
     time: float
     train_acc: float
     val_acc: float
+    # loss: float

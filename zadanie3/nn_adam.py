@@ -5,9 +5,9 @@ import time
 from dataclasses import dataclass
 from activation_functions import ActivationFunction
 
-class NeuralNetwork:
+class NeuralNetworkAdam:
 
-    def __init__(self, sizes, W, b, activations):
+    def __init__(self, sizes, W, b, activations,  beta1=0.9,  beta2=0.999):
         self.sizes = sizes
         self.W = W
         self.b = b
@@ -18,6 +18,14 @@ class NeuralNetwork:
         self.best_W = self.W
         self.best_b = self.b
         self.best_val_acc = 0
+        #Adam
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.m_W = [w * 0 for w in self.W]
+        self.v_W = [w * 0 for w in self.W]
+        self.m_b = [b * 0 for b in self.b]
+        self.v_b = [b * 0 for b in self.b]
+        self.t = 1
 
     @staticmethod
     def from_file(path):
@@ -60,8 +68,19 @@ class NeuralNetwork:
         return (dW, db)
 
     def __update_parameters(self, dW, db, eta):
-        self.W -= eta*np.array(dW)
-        self.b -= eta*np.array(db)
+        e = 0.0001
+        for i, _ in enumerate(dW):
+            self.m_W[i] = self.beta1*self.m_W[i] + (1-self.beta1)*dW[i]
+            self.v_W[i] = self.beta2*self.v_W[i] + (1-self.beta2)*np.square(dW[i])
+            self.m_b[i] = self.beta1*self.m_b[i] + (1-self.beta1)*db[i]
+            self.v_b[i] = self.beta2*self.v_b[i] + (1-self.beta2)*np.square(db[i])
+            m_W_dash = self.m_W[i] / (1-np.power(self.beta1, self.t))
+            v_W_dash = self.v_W[i] / (1-np.power(self.beta2, self.t))
+            m_b_dash = self.m_b[i] / (1-np.power(self.beta1, self.t))
+            v_b_dash = self.v_b[i] / (1-np.power(self.beta2, self.t))
+            self.W[i] -= eta * m_W_dash / (np.sqrt(v_W_dash) + e)
+            self.b[i] -= eta * m_b_dash / (np.sqrt(v_b_dash) + e)
+        self.t += 1
 
     def __gradient_descent(self, X, Y, eta):
         (Z, A) = self.__feed_forward(X)

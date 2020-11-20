@@ -48,7 +48,7 @@ def draw_network_progress(networks, values, param_name, title, labels=None):
         plt.plot(Time, V, label=f'{param_name}={label}')
     plt.title(title, wrap=True)
     plt.ylim(bottom=0, top=1)
-    plt.ylabel("Efektywnośc na zbiorze walidacyjnym")
+    plt.ylabel("Efektywność na zbiorze walidacyjnym")
     plt.xlabel("Czas uczenia (s)")
     plt.legend()
     plt.savefig(f"graph_{param_name}.svg")

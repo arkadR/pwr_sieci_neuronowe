@@ -7,7 +7,7 @@ from activation_functions import ActivationFunction
 
 class NeuralNetworkMomentum:
 
-    def __init__(self, sizes, W, b, activations, momentum=0.9):
+    def __init__(self, sizes, W, b, activations, momentum=0.7):
         self.sizes = sizes
         self.W = W
         self.b = b
@@ -64,8 +64,8 @@ class NeuralNetworkMomentum:
         return (dW, db)
 
     def __update_parameters(self, dW, db, eta):
-        change_W = eta * np.array(dW) - self.momentum * self.prev_dW
-        change_b = eta * np.array(db) - self.momentum * self.prev_db
+        change_W = eta * np.array(dW) + self.momentum * self.prev_dW
+        change_b = eta * np.array(db) + self.momentum * self.prev_db
         self.prev_dW = change_W
         self.prev_db = change_b
         self.W -= change_W
